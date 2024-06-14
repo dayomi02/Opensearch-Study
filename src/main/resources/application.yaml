@@ -1,0 +1,42 @@
+server:
+  port: 8080
+
+spring:
+  profiles:
+    default: dev
+
+  jpa:
+    hibernate:
+      ddl-auto: update
+    show-sql: true
+    properties:
+      hibernate:
+        dialect: org.hibernate.dialect.PostgreSQLDialect
+
+# mongo to json
+index:
+  docs:
+    indexName: community_blind
+    name: community_blind
+    keyCode: BLIND
+    collection: community_contents
+    path:
+      separator: \
+      source: src\main\resources\files\
+#      source: src\main\resources\files\byRow\
+      backup: src\main\resources\files\backup
+
+# scheduler
+schedule:
+  mongoToJsonJob:
+    cron: 0 0/2 * * * *
+    use: false
+  mongoToBulkJsonJob:
+    cron: 0 0/2 * * * *
+    use: false
+  openSearchBatchJob:
+    cron: 0 0/2 * * * *
+    use: true
+  byRowJobUseSchedule:
+    cron: 0 0/2 * * * *
+    use: false

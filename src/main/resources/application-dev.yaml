@@ -1,0 +1,25 @@
+spring:
+  config:
+    activate:
+      on-profile: dev
+  datasource:
+    #url: jdbc:postgresql://127.0.0.1:5432/study
+    url: jdbc:postgresql://192.168.0.180:5432/study
+    username: postgres
+    password: qlalfqjsgh
+  data:
+    mongodb:
+#      uri: mongodb://root:qlalfqjsgh@192.168.0.212:27015/?serverSelectionTimeoutMS=2000&connectTimeoutMS=10000&authSource=admin&authMechanism=SCRAM-SHA-256
+#      database: danyang_crawler
+      uri: mongodb://root:qlalfqjsgh@192.168.0.50:27017/?retryWrites=true&serverSelectionTimeoutMS=5000&connectTimeoutMS=10000&authSource=admin&authMechanism=SCRAM-SHA-256
+#      database: crawler_news
+      database: danyang_crawler
+      auto-index-creation: true
+  batch:
+    jdbc:
+      initialize-schema: always
+
+# OpenSearch 관련 설정
+opensearch:
+  ip: 192.168.0.47
+  port: 9200
