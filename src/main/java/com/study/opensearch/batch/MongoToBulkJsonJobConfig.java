@@ -114,6 +114,7 @@ public class MongoToBulkJsonJobConfig {
             String[] bulkItem = {item.get_id(), indexJson.toString(), fieldJson.toString()};
 
             return bulkItem;
+//            return new String[]{item.get_id(), indexJson.toString(), fieldJson.toString()};
         };
     }
 

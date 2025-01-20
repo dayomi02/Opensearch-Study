@@ -1,7 +1,9 @@
 package com.study.opensearch.batch;
 
+import com.study.opensearch.util.Constants;
 import com.study.opensearch.util.OpenSearchIndexManager;
 import lombok.extern.slf4j.Slf4j;
+import org.h2.schema.Constant;
 import org.opensearch.client.RestHighLevelClient;
 import org.springframework.batch.core.Job;
 import org.springframework.batch.core.JobParameters;
@@ -73,7 +75,7 @@ public class OpenSearchRunnerConfig {
     @Bean
     @Scheduled(cron = "${schedule.byRowJobUseSchedule.cron}")
     public void byRowrun() throws IOException {
-        log.info("::: [{}] method Start :::",  Thread.currentThread().getStackTrace()[1].getMethodName());
+        log.info(Constants.LOG_METHOD_START,  Thread.currentThread().getStackTrace()[1].getMethodName());
 
         if (!byRowJobUseSchedule) {
             return;
@@ -81,11 +83,11 @@ public class OpenSearchRunnerConfig {
 
         LocalDateTime date = LocalDateTime.now();
         String message = "Execute mongoToJsonByRowJob at " + date.format(DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm"));
-        String currentDate = date.format(DateTimeFormatter.ofPattern("yyyyMMddHHmm"));
+        String formatDate = date.format(DateTimeFormatter.ofPattern(Constants.DATE_FORMAT));
 
         try{
             JobParameters jobParameters = new JobParametersBuilder()
-                    .addString("currentDate", currentDate)
+                    .addString(Constants.JOB_PARAMETER_CURRENT_DATE, formatDate)
                     .addString("message", message)
                     .toJobParameters();
 
@@ -102,7 +104,7 @@ public class OpenSearchRunnerConfig {
     @Bean
     @Scheduled(cron = "${schedule.mongoToBulkJsonJob.cron}")
     public void run() throws IOException {
-        log.info("::: [{}] method Start :::", Thread.currentThread().getStackTrace()[1].getMethodName());
+        log.info(Constants.LOG_METHOD_START, Thread.currentThread().getStackTrace()[1].getMethodName());
 
         if (!bulkJsonJobUseSchedule) {
             return;
@@ -110,13 +112,12 @@ public class OpenSearchRunnerConfig {
 
         LocalDateTime date = LocalDateTime.now();
         String message = "Execute mongoToBulkJsonJob at " + date.format(DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm"));
-        String currentDate = date.format(DateTimeFormatter.ofPattern("yyyyMMddHHmm"));
+        String currentDate = date.format(DateTimeFormatter.ofPattern(Constants.DATE_FORMAT));
 
         try {
             JobParameters jobParameters = new JobParametersBuilder()
-//                    .addString("keyCode", "BLIND")
-                    .addString("currentDate", currentDate)
-//                    .addString("message", message)
+                    .addString(Constants.JOB_PARAMETER_CURRENT_DATE, currentDate)
+                    .addString("message", message)
                     .toJobParameters();
 
             jobLauncher.run(mongoToBulkJsonJob, jobParameters);
@@ -132,22 +133,16 @@ public class OpenSearchRunnerConfig {
     @Bean
     @Scheduled(cron = "${schedule.openSearchBatchJob.cron}")
     public void runIndex() throws IOException {
-        log.info("::: [{}] method Start :::", Thread.currentThread().getStackTrace()[1].getMethodName());
+        log.info(Constants.LOG_METHOD_START, Thread.currentThread().getStackTrace()[1].getMethodName());
 
         if(!batchJobUseSchedule) {
             return;
         }
 
         LocalDateTime date = LocalDateTime.now();
-        String message = "Execute mongoToJsonJob at " + date.format(DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm"));
-        String currentDate = date.format(DateTimeFormatter.ofPattern("yyyyMMddHHmm"));
+        String currentDate = date.format(DateTimeFormatter.ofPattern(Constants.DATE_FORMAT));
 
-        FilenameFilter filter = new FilenameFilter() {
-            @Override
-            public boolean accept(File file, String name) {
-                return name.contains(indexDocsName);// && file.getName().endsWith("json");
-            }
-        };
+        FilenameFilter filter = (File file, String name) -> name.contains(indexDocsName);
 
         File[] jsonFiles = new File(indexDocsPath).listFiles(filter);
 
@@ -159,9 +154,9 @@ public class OpenSearchRunnerConfig {
         for(File jsonFile : jsonFiles){
             try{
                 JobParameters jobParameters = new JobParametersBuilder()
-                        .addString("currentDate", currentDate)
-                        .addString("jsonFilePath", jsonFile.toString())
-                        .addString("indexName", indexDocsIndexName)
+                        .addString(Constants.JOB_PARAMETER_CURRENT_DATE, currentDate)
+                        .addString(Constants.JOB_PARAMETER_JSON_FILE_PATH, jsonFile.toString())
+                        .addString(Constants.JOB_PARAMETER_INDEX_NAME, indexDocsIndexName)
                         .toJobParameters();
 
                 jobLauncher.run(openSearchBatchJob, jobParameters);

@@ -29,11 +29,9 @@ public class JsonDocFileItemWriter implements ItemWriter<Document> {
     @Value("${index.docs.name}")
     private String indexDocsName;
 
-    private int count = 0;
 
     public JsonDocFileItemWriter() {
         String currentDate = LocalDateTime.now().format(DateTimeFormatter.ofPattern("yyyyMMddHHmm"));
-//        String filePath = indexDocsPath + indexDocsName + "_" + currentDate + ".json";
         String filePath = "src\\main\\resources\\files\\community_blind_2" + "_" + currentDate + ".json";
 
         this.file = new FileSystemResource(filePath).getFile();
@@ -48,11 +46,8 @@ public class JsonDocFileItemWriter implements ItemWriter<Document> {
 
         try (FileWriter fileWriter = new FileWriter(file, true)){
             for (Document item : chunk) {
-//                log.info("::: write : {}", count++);
-//                count++;
                 items.add(item);
             }
-//            log.info("::: writeValue : {} ", count);
             objectMapper.writeValue(fileWriter, items);
         }
     }

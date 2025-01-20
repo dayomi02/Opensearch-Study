@@ -87,7 +87,7 @@ public class OpenSearchBatchJobConfig {
     @Value("${index.docs.path.separator}")
     private String indexDocsPathSeparator;
 
-//    private int testCount = 1;
+    private int testCount = 1;
 
     public OpenSearchBatchJobConfig(JobRepository jobRepository, PlatformTransactionManager transactionManager,
                                     @Qualifier("executionTimeLogger") ExecutionTimeLogger executionTimeLogger) {
@@ -102,7 +102,7 @@ public class OpenSearchBatchJobConfig {
      */
     @Bean
     public Job openSearchBatchJob() {
-        log.info("::: [{}] method Start :::", Thread.currentThread().getStackTrace()[1].getMethodName());
+        log.info(Constants.LOG_METHOD_START, Thread.currentThread().getStackTrace()[1].getMethodName());
         return new JobBuilder("openSearchBatchJob", jobRepository)
                 .start(jsonToOpenSearchStep())
                 .next(fileBackupStep())
@@ -116,20 +116,20 @@ public class OpenSearchBatchJobConfig {
      */
     @Bean
     public Step jsonToOpenSearchStep() {
-        log.info("::: [{}] method Start :::", Thread.currentThread().getStackTrace()[1].getMethodName());
+        log.info(Constants.LOG_METHOD_START, Thread.currentThread().getStackTrace()[1].getMethodName());
         // BulkProcessor - simple json
-//        return new StepBuilder("jsonToOpenSearchStep", jobRepository)
-//                .<CommunityContents, Map<String, Object>>chunk(1000, transactionManager)
-//                .reader(jsonItemReader(null))
-//                .processor(openSearchItemProcessor())
-//                .writer(openSearchItemWriter(null))
-//                .listener(executionTimeLogger)
-//                .build();
+        return new StepBuilder("jsonToOpenSearchStep", jobRepository)
+                .<CommunityContents, Map<String, Object>>chunk(1000, transactionManager)
+                .reader(jsonItemReader(null))
+                .processor(openSearchItemProcessor())
+                .writer(openSearchItemWriter(null))
+                .listener(executionTimeLogger)
+                .build();
 
         // BulkRequest - Bulk json
-        return new StepBuilder("jsonToOpenSearchStep", jobRepository)
-                .tasklet(openSearchBulkIndexTasklet(null), transactionManager)
-                .build();
+//        return new StepBuilder("jsonToOpenSearchStep", jobRepository)
+//                .tasklet(openSearchBulkIndexTasklet(null), transactionManager)
+//                .build();
     }
 
     @Bean
@@ -153,7 +153,7 @@ public class OpenSearchBatchJobConfig {
 
                     if (responseEntity != null) {
                         String responseString = EntityUtils.toString(responseEntity);
-                        System.out.println("Response: " + responseString);
+                        log.info("Response: {}", responseString);
                     }
                 } catch (IOException e) {
                     log.error("Index failed. message: {}", e.getMessage());
@@ -169,7 +169,7 @@ public class OpenSearchBatchJobConfig {
      */
     @Bean
     public Step fileBackupStep() {
-        log.info("::: [{}] method Start :::", Thread.currentThread().getStackTrace()[1].getMethodName());
+        log.info(Constants.LOG_METHOD_START, Thread.currentThread().getStackTrace()[1].getMethodName());
         return new StepBuilder("fileBackupStep", jobRepository)
                 .tasklet(fileBackupTasklet(null), transactionManager)
                 .build();
@@ -183,7 +183,7 @@ public class OpenSearchBatchJobConfig {
     @Bean
     @StepScope
     public JsonItemReader<CommunityContents> jsonItemReader(@Value("#{jobParameters['jsonFilePath']}") String jsonFilePath) {
-        log.info("::: [{}] method Start :::", Thread.currentThread().getStackTrace()[1].getMethodName());
+        log.info(Constants.LOG_METHOD_START, Thread.currentThread().getStackTrace()[1].getMethodName());
         return new JsonItemReaderBuilder<CommunityContents>()
                 .name("jsonItemReader")
                 .resource(new FileSystemResource(jsonFilePath))
@@ -198,7 +198,7 @@ public class OpenSearchBatchJobConfig {
     @Bean
     public ItemProcessor<CommunityContents, Map<String, Object>> openSearchItemProcessor() {
         return item -> {
-            log.info("::: [{}] method Start :::", Thread.currentThread().getStackTrace()[1].getMethodName());
+            log.info(Constants.LOG_METHOD_START, Thread.currentThread().getStackTrace()[1].getMethodName());
             Map<String, Object> resultMap = new HashMap<>();
 
             resultMap.put(Constants.INDEX_URL, item.get_id());
@@ -226,7 +226,7 @@ public class OpenSearchBatchJobConfig {
 
             @Override
             public void write(Chunk<? extends Map<String, Object>> chunk) throws Exception {
-                log.info("::: [{}] method Start :::", Thread.currentThread().getStackTrace()[1].getMethodName());
+                log.info(Constants.LOG_METHOD_START, Thread.currentThread().getStackTrace()[1].getMethodName());
 
                 OpenSearchClientManager clientManager = new OpenSearchClientManager();
                 client = clientManager.createClient(opensearchIp, opensearchPort, Constants.HTTP);
@@ -239,10 +239,10 @@ public class OpenSearchBatchJobConfig {
                     indexRequest.source(item, XContentType.JSON);
                     bulkProcessor.add(indexRequest);
 
-//                    testCount++;
-//                    if (testCount > 2013){
-//                        throw new RuntimeException("강제 예외 발생");
-//                    }
+                    testCount++;
+                    if (testCount > 2013){
+                        throw new IllegalArgumentException("강제 예외 발생");
+                    }
                 }
 
                 clientManager.closeClient(client);

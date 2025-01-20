@@ -28,7 +28,7 @@ public class OpenSearchClientManager {
 
             return new RestHighLevelClient(builder);
         } catch (Exception e) {
-            log.error("Error creating OpenSearch client: {}", e.getMessage());
+            log.error("Error creating OpenSearch client: {}", e.getMessage()); //NOPMD - suppressed GuardLogStatement - TODO explain reason for suppression
         }
 
         return null;
